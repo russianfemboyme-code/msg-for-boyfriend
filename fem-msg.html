@@ -1,0 +1,1463 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>💜 Тайное послание для тебя</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+  body {
+    font-family: 'Segoe UI', 'Comic Sans MS', 'Trebuchet MS', sans-serif;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(120, 40, 160, 0.25), transparent 55%),
+      radial-gradient(circle at 85% 30%, rgba(90, 30, 130, 0.22), transparent 60%),
+      radial-gradient(circle at 50% 95%, rgba(140, 40, 140, 0.18), transparent 65%),
+      linear-gradient(160deg, #0a0410 0%, #140819 40%, #1a0a24 70%, #0d0512 100%);
+    min-height: 100vh;
+    position: relative;
+    color: #d9b8e8;
+    user-select: none;
+    overflow: hidden;
+  }
+
+  .bg-deco {
+    position: absolute;
+    pointer-events: none;
+    z-index: 0;
+    animation: floatDeco 14s ease-in-out infinite;
+    opacity: 0.35;
+    filter: drop-shadow(0 0 10px currentColor);
+  }
+  @keyframes floatDeco {
+    0%, 100% { transform: translateY(0) rotate(-10deg) scale(1); }
+    50% { transform: translateY(-34px) rotate(10deg) scale(1.12); }
+  }
+
+  .header {
+    position: absolute;
+    top: 14px; left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    z-index: 50;
+    pointer-events: none;
+    width: 92%;
+  }
+  .header h1 {
+    font-size: clamp(1.2rem, 2.8vw, 1.9rem);
+    font-weight: 700;
+    color: #e9a8ff;
+    letter-spacing: 0.5px;
+    text-shadow:
+      0 0 10px rgba(200, 100, 255, 0.75),
+      0 0 26px rgba(150, 60, 220, 0.45),
+      0 2px 6px rgba(0,0,0,0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  .header h1 .cat-ears {
+    font-size: 1.2em;
+    filter: drop-shadow(0 0 8px #b45cff);
+  }
+  .header p {
+    margin-top: 6px;
+    font-size: clamp(0.75rem, 1.5vw, 0.95rem);
+    color: #b98cd4;
+    opacity: 0.9;
+    pointer-events: none;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+  }
+
+  .progress {
+    position: absolute;
+    bottom: 14px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 50;
+    background: rgba(20, 8, 30, 0.8);
+    backdrop-filter: blur(10px);
+    padding: 8px 22px;
+    border-radius: 40px;
+    font-size: 0.9rem;
+    color: #cfa8e6;
+    border: 1px solid rgba(180, 100, 230, 0.35);
+    box-shadow:
+      0 6px 24px rgba(80, 20, 120, 0.5),
+      inset 0 1px 2px rgba(255,255,255,0.06);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    pointer-events: none;
+    transition: 0.3s;
+    white-space: nowrap;
+  }
+  .progress .hearts { letter-spacing: 2px; font-size: 1.1rem; }
+  .progress .hearts .filled { color: #c46aff; text-shadow: 0 0 10px #a040e0; }
+  .progress .hearts .empty { color: #4a2a5e; }
+
+  /* ============================================================
+     КОНВЕРТ
+     ============================================================ */
+  .envelope {
+    position: absolute;
+    width: 132px;
+    height: 92px;
+    z-index: 10;
+    cursor: grab;
+    transition: box-shadow 0.2s, transform 0.15s, filter 0.2s;
+    filter: drop-shadow(0 12px 20px rgba(30, 3, 55, 0.9));
+    touch-action: none;
+    perspective: 600px;
+  }
+  .envelope:active { cursor: grabbing; }
+  .envelope.dragging {
+    z-index: 999 !important;
+    transform: scale(1.06) rotate(1.5deg);
+    filter: drop-shadow(0 18px 30px rgba(160, 60, 230, 0.6));
+  }
+  .envelope.opened { cursor: default; }
+  .envelope.opened:hover { transform: none; }
+
+  .env-inner {
+    position: absolute;
+    inset: 8px;
+    background: #140822;
+    border-radius: 3px;
+    box-shadow: inset 0 3px 12px rgba(0,0,0,0.9);
+    opacity: 0;
+    transition: opacity 0.4s 0.25s;
+  }
+  .envelope.opened .env-inner { opacity: 1; }
+
+  .env-side-left,
+  .env-side-right {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 50%;
+    z-index: 2;
+    pointer-events: none;
+  }
+  .env-side-left {
+    left: 0;
+    background: linear-gradient(135deg, #34164f 0%, #250e3d 100%);
+    clip-path: polygon(0 0, 100% 50%, 0 100%);
+    border-right: 1px solid rgba(122, 63, 168, 0.5);
+  }
+  .env-side-right {
+    right: 0;
+    background: linear-gradient(225deg, #34164f 0%, #250e3d 100%);
+    clip-path: polygon(100% 0, 0 50%, 100% 100%);
+    border-left: 1px solid rgba(122, 63, 168, 0.5);
+  }
+  .env-bottom {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 55%;
+    background: linear-gradient(0deg, #2a103f 0%, #1e0a30 100%);
+    clip-path: polygon(0 100%, 50% 0, 100% 100%);
+    z-index: 3;
+    border-top: 1px solid rgba(122, 63, 168, 0.4);
+    box-shadow: 0 -3px 8px rgba(0,0,0,0.35);
+  }
+  .env-flap {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 60%;
+    background: linear-gradient(180deg, #4d2470 0%, #34164f 100%);
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+    transform-origin: top center;
+    transition: transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+    z-index: 6;
+    border-bottom: 1px solid rgba(122, 63, 168, 0.6);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.5);
+    backface-visibility: hidden;
+  }
+  .env-flap::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, #1a0a2a 0%, #2a103f 100%);
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+    opacity: 0;
+    transition: opacity 0.3s 0.3s;
+  }
+  .envelope.opened .env-flap {
+    transform: rotateX(180deg);
+    z-index: 1;
+  }
+  .envelope.opened .env-flap::after { opacity: 1; }
+
+  .env-crease {
+    position: absolute;
+    left: 0; right: 0;
+    top: 50%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(122, 63, 168, 0.35), transparent);
+    z-index: 4;
+    pointer-events: none;
+  }
+  .env-crease-diag {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    pointer-events: none;
+    background:
+      linear-gradient(45deg, transparent 49.5%, rgba(122, 63, 168, 0.2) 49.5%, rgba(122, 63, 168, 0.2) 50.5%, transparent 50.5%),
+      linear-gradient(-45deg, transparent 49.5%, rgba(122, 63, 168, 0.2) 49.5%, rgba(122, 63, 168, 0.2) 50.5%, transparent 50.5%);
+    opacity: 0.6;
+  }
+
+  .env-seal {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 34px; height: 34px;
+    background: radial-gradient(circle at 35% 30%, #b865e0, #6b2a9a 70%, #4a1a6e 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #f0d4ff;
+    font-size: 15px;
+    z-index: 7;
+    box-shadow:
+      0 3px 10px rgba(0, 0, 0, 0.8),
+      inset 0 2px 4px rgba(255,255,255,0.25),
+      inset 0 -2px 4px rgba(0,0,0,0.4),
+      0 0 16px rgba(160, 80, 230, 0.7);
+    transition: opacity 0.3s, transform 0.35s;
+    border: 1px solid #8e4ec4;
+  }
+  .envelope.opened .env-seal {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.2) rotate(45deg);
+  }
+
+  .env-label {
+    position: absolute;
+    bottom: 5px; right: 9px;
+    font-size: 0.62rem;
+    color: #b07ad0;
+    opacity: 0.7;
+    z-index: 5;
+    font-style: italic;
+    pointer-events: none;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+  }
+  .envelope.opened .env-label { opacity: 0.15; }
+
+  /* ============================================================
+     ЗАПИСКА
+     ============================================================ */
+  .note {
+    position: absolute;
+    min-width: 80px;
+    max-width: 240px;
+    padding: 12px 16px;
+    background: linear-gradient(175deg, #24122f 0%, #1a0c24 100%);
+    border-radius: 4px;
+    border: 1px solid #6b3a90;
+    box-shadow:
+      0 8px 22px rgba(0, 0, 0, 0.75),
+      0 0 18px rgba(140, 60, 200, 0.2),
+      inset 0 1px 0 rgba(200, 140, 255, 0.12);
+    font-family: 'Segoe UI', 'Comic Sans MS', sans-serif;
+    font-size: 1.05rem;
+    color: #e4c8f5;
+    z-index: 20;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+    transition: box-shadow 0.2s, transform 0.1s, border-color 0.3s;
+    line-height: 1.4;
+    text-align: center;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+    font-weight: 600;
+  }
+  .note:active { cursor: grabbing; }
+  .note.dragging {
+    z-index: 9999 !important;
+    transform: rotate(-1.5deg) scale(1.05);
+    box-shadow:
+      0 18px 36px rgba(0, 0, 0, 0.85),
+      0 0 28px rgba(180, 80, 255, 0.5);
+  }
+  .note.snapped {
+    cursor: default;
+    border-color: #9a5ccc;
+    box-shadow:
+      0 4px 12px rgba(0, 0, 0, 0.7),
+      0 0 22px rgba(160, 90, 230, 0.45),
+      inset 0 1px 0 rgba(220, 170, 255, 0.2);
+    white-space: normal;
+    word-break: break-word;
+    overflow: hidden;
+    padding: 8px 10px;
+    font-size: 0.95rem;
+  }
+  @keyframes noteDrop {
+    0% { opacity: 0; transform: translateY(-40px) rotate(0deg) scale(0.6); }
+    60% { opacity: 1; transform: translateY(8px) rotate(0deg) scale(1.05); }
+    100% { opacity: 1; transform: translateY(0) rotate(0deg) scale(1); }
+  }
+  .note.drop {
+    animation: noteDrop 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  @keyframes magicGlow {
+    0% { box-shadow: 0 0 0 rgba(200, 120, 255, 0), 0 8px 22px rgba(0,0,0,0.75); border-color: #6b3a90; }
+    25% { box-shadow: 0 0 40px rgba(200, 120, 255, 0.9), 0 0 80px rgba(160, 80, 255, 0.6), 0 8px 22px rgba(0,0,0,0.75); border-color: #d98aff; }
+    50% { box-shadow: 0 0 60px rgba(220, 150, 255, 1), 0 0 120px rgba(180, 100, 255, 0.8), 0 8px 22px rgba(0,0,0,0.75); border-color: #f0d4ff; }
+    100% { box-shadow: 0 8px 22px rgba(0,0,0,0.75), 0 0 18px rgba(140, 60, 200, 0.2); border-color: #6b3a90; }
+  }
+  .note.magic-move {
+    animation: magicGlow 1s ease-out;
+    z-index: 5000 !important;
+  }
+
+  .sparkle {
+    position: fixed;
+    pointer-events: none;
+    font-size: 1.2rem;
+    z-index: 100000;
+    animation: sparkleFly 1s ease-out forwards;
+    color: #d98aff;
+    filter: drop-shadow(0 0 6px #b45cff);
+  }
+  @keyframes sparkleFly {
+    0% { opacity: 1; transform: translate(0, 0) scale(1) rotate(0deg); }
+    100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.3) rotate(180deg); }
+  }
+
+  /* ============================================================
+     ПОЛЕ СБОРА — СЛОТЫ
+     ============================================================ */
+  .board {
+    position: fixed;
+    bottom: 110px;
+    left: 50%;
+    transform: translateX(-50%) translateY(40px);
+    z-index: 400;
+    background: rgba(20, 8, 30, 0.8);
+    backdrop-filter: blur(12px);
+    border: 1.5px solid rgba(180, 100, 230, 0.35);
+    border-radius: 20px;
+    padding: 16px 18px;
+    box-shadow:
+      0 12px 40px rgba(0,0,0,0.6),
+      0 0 40px rgba(120, 50, 200, 0.2),
+      inset 0 1px 2px rgba(255,255,255,0.06);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease, visibility 0.5s, transform 0.5s ease;
+    max-width: 96vw;
+  }
+  .board.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+  }
+  .board-title {
+    text-align: center;
+    font-size: 0.85rem;
+    color: #b98cd4;
+    margin-bottom: 12px;
+    font-style: italic;
+    letter-spacing: 0.3px;
+  }
+  .slots-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: stretch;
+    gap: 10px;
+    max-width: 90vw;
+  }
+  .slot {
+    min-width: 90px;
+    min-height: 50px;
+    flex: 1 1 auto;
+    max-width: 180px;
+    padding: 10px 14px;
+    background: rgba(30, 15, 45, 0.7);
+    border: 2px dashed rgba(150, 90, 200, 0.55);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.2s;
+    font-size: 0.9rem;
+    color: #6a4a80;
+    position: relative;
+    text-align: center;
+    word-break: break-word;
+  }
+  .slot .slot-num {
+    position: absolute;
+    top: -8px; left: -6px;
+    width: 20px; height: 20px;
+    background: #4a1a6e;
+    border: 1px solid #8e4ec4;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    color: #d0a8ec;
+    font-weight: 700;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+    z-index: 2;
+  }
+  .slot.hover {
+    border-color: #d98aff;
+    background: rgba(120, 60, 180, 0.3);
+    box-shadow: 0 0 20px rgba(180, 100, 255, 0.5);
+    transform: scale(1.03);
+  }
+  .slot.filled {
+    border-style: solid;
+    border-color: #9a5ccc;
+    background: linear-gradient(175deg, #24122f 0%, #1a0c24 100%);
+    box-shadow:
+      0 4px 12px rgba(0, 0, 0, 0.7),
+      0 0 18px rgba(160, 90, 230, 0.3);
+  }
+  .slot.filled .slot-num { opacity: 0.4; }
+  .slot .slot-text {
+    color: #e4c8f5;
+    font-weight: 600;
+    font-size: 0.98rem;
+    text-align: center;
+    line-height: 1.3;
+    transition: 0.3s;
+    word-break: break-word;
+    overflow: hidden;
+  }
+  .slot.filled .slot-text {
+    animation: slotFill 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  @keyframes slotFill {
+    0% { opacity: 0; transform: scale(0.5); }
+    60% { opacity: 1; transform: scale(1.1); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  .slot.hint-fill {
+    animation: slotHintGlow 1s ease-out;
+  }
+  @keyframes slotHintGlow {
+    0% { box-shadow: 0 0 0 rgba(220, 150, 255, 0); }
+    30% { box-shadow: 0 0 40px rgba(220, 150, 255, 1), 0 0 80px rgba(180, 100, 255, 0.8); border-color: #f0d4ff; }
+    100% { box-shadow: 0 0 18px rgba(160, 90, 230, 0.3); }
+  }
+
+  /* ============================================================
+     КНОПКИ / ЗАДАНИЕ / ФИНАЛ
+     ============================================================ */
+  .bottom-controls {
+    position: fixed;
+    bottom: 54px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    z-index: 500;
+    display: flex;
+    gap: 12px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease, visibility 0.5s, transform 0.5s ease;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .bottom-controls.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+  }
+  .action-btn {
+    background: linear-gradient(135deg, #6b2a9a, #4a1a6e);
+    border: 1px solid #9a5ccc;
+    border-radius: 40px;
+    padding: 13px 28px;
+    font-size: 0.98rem;
+    font-weight: 600;
+    color: #f0d4ff;
+    cursor: pointer;
+    transition: 0.2s;
+    box-shadow:
+      0 6px 20px rgba(120, 40, 180, 0.6),
+      inset 0 1px 2px rgba(255,255,255,0.15);
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+  }
+  .action-btn:hover {
+    background: linear-gradient(135deg, #7e3aad, #5a2480);
+    box-shadow: 0 8px 26px rgba(160, 70, 230, 0.7);
+    transform: translateY(-1px);
+  }
+  .action-btn:active { transform: translateY(1px); }
+  .action-btn.hint {
+    background: linear-gradient(135deg, #8a3fb8, #5e1f8a);
+    border-color: #b865e0;
+    box-shadow: 0 6px 20px rgba(160, 80, 220, 0.7), inset 0 1px 2px rgba(255,255,255,0.2);
+  }
+  .action-btn.hint:hover {
+    background: linear-gradient(135deg, #a24ad0, #6b2a9a);
+    box-shadow: 0 8px 28px rgba(190, 100, 255, 0.8);
+  }
+  .action-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .toast {
+    position: fixed;
+    top: 80px; left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    z-index: 20000;
+    background: rgba(30, 12, 45, 0.95);
+    border: 1px solid rgba(180, 100, 230, 0.5);
+    border-radius: 40px;
+    padding: 12px 28px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #e9a8ff;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.6), 0 0 20px rgba(140, 60, 210, 0.4);
+    opacity: 0;
+    visibility: hidden;
+    transition: 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    white-space: nowrap;
+    pointer-events: none;
+    max-width: 92vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .toast.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+  }
+  .toast.error {
+    color: #ff9ec4;
+    border-color: rgba(255, 120, 180, 0.5);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.6), 0 0 20px rgba(255, 80, 160, 0.4);
+  }
+  .toast.success {
+    color: #b5ffb5;
+    border-color: rgba(120, 255, 160, 0.5);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.6), 0 0 20px rgba(80, 255, 140, 0.4);
+  }
+  .toast.magic {
+    color: #f0d4ff;
+    border-color: rgba(200, 120, 255, 0.7);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.6), 0 0 26px rgba(180, 100, 255, 0.6);
+  }
+
+  .task-panel {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    background: rgba(8, 2, 14, 0.82);
+    backdrop-filter: blur(10px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.6s ease, visibility 0.6s;
+    padding: 20px;
+  }
+  .task-panel.show { opacity: 1; visibility: visible; }
+  .task-paper {
+    background: linear-gradient(180deg, #1e0c2c 0%, #140820 100%);
+    max-width: 500px;
+    width: 100%;
+    padding: 40px 36px 34px;
+    border-radius: 12px;
+    box-shadow:
+      0 30px 100px rgba(0, 0, 0, 0.9),
+      0 0 0 1px rgba(150, 80, 210, 0.5),
+      0 0 50px rgba(120, 50, 200, 0.35),
+      inset 0 0 70px rgba(90, 30, 140, 0.2);
+    position: relative;
+    transform: translateY(30px) scale(0.96);
+    transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    border-top: 2px solid #6b3a90;
+    border-bottom: 2px solid #6b3a90;
+    text-align: center;
+  }
+  .task-panel.show .task-paper { transform: translateY(0) scale(1); }
+  .task-paper::before {
+    content: '♡ ✧ ♡';
+    position: absolute;
+    top: 10px; left: 50%;
+    transform: translateX(-50%);
+    color: #a24ad0;
+    font-size: 1.1rem;
+    opacity: 0.8;
+    letter-spacing: 4px;
+  }
+  .task-paper .task-emoji {
+    font-size: 2.6rem;
+    margin-bottom: 10px;
+    filter: drop-shadow(0 0 16px #a040e0);
+    animation: heartbeat 1.3s ease-in-out infinite;
+  }
+  @keyframes heartbeat {
+    0%, 100% { transform: scale(1); }
+    25% { transform: scale(1.15); }
+    50% { transform: scale(1); }
+    75% { transform: scale(1.08); }
+  }
+  .task-paper h2 {
+    font-size: 1.5rem;
+    color: #d98aff;
+    margin-bottom: 16px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-shadow: 0 0 14px rgba(180, 80, 255, 0.7);
+  }
+  .task-paper p {
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: #d4b4e8;
+    margin-bottom: 14px;
+    font-weight: 500;
+  }
+  .task-paper .task-instruction {
+    background: rgba(120, 50, 200, 0.15);
+    border: 1px solid rgba(160, 90, 230, 0.4);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin: 18px 0 22px;
+    font-size: 1rem;
+    color: #c9a0e8;
+    line-height: 1.6;
+  }
+  .task-paper .task-instruction b { color: #e9a8ff; }
+  .task-btn {
+    background: linear-gradient(135deg, #6b2a9a, #4a1a6e);
+    border: 1px solid #9a5ccc;
+    border-radius: 40px;
+    padding: 14px 34px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #f0d4ff;
+    cursor: pointer;
+    transition: 0.2s;
+    box-shadow:
+      0 6px 20px rgba(120, 40, 180, 0.6),
+      inset 0 1px 2px rgba(255,255,255,0.15);
+    font-family: inherit;
+  }
+  .task-btn:hover {
+    background: linear-gradient(135deg, #7e3aad, #5a2480);
+    box-shadow: 0 8px 26px rgba(160, 70, 230, 0.7);
+    transform: translateY(-1px);
+  }
+  .task-btn:active { transform: translateY(1px); }
+
+  .final-letter {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 30000;
+    background: rgba(8, 2, 14, 0.85);
+    backdrop-filter: blur(10px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.6s ease, visibility 0.6s;
+    padding: 20px;
+  }
+  .final-letter.show { opacity: 1; visibility: visible; }
+  .letter-paper {
+    background: linear-gradient(180deg, #1e0c2c 0%, #140820 100%);
+    max-width: 480px;
+    width: 100%;
+    padding: 40px 36px 30px;
+    border-radius: 12px;
+    box-shadow:
+      0 30px 100px rgba(0, 0, 0, 0.9),
+      0 0 0 1px rgba(150, 80, 210, 0.5),
+      0 0 50px rgba(120, 50, 200, 0.35),
+      inset 0 0 70px rgba(90, 30, 140, 0.2);
+    position: relative;
+    transform: translateY(30px) scale(0.96);
+    transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    border-top: 2px solid #6b3a90;
+    border-bottom: 2px solid #6b3a90;
+  }
+  .final-letter.show .letter-paper { transform: translateY(0) scale(1); }
+  .letter-paper::before {
+    content: '♡ ✧ ♡';
+    position: absolute;
+    top: 10px; left: 50%;
+    transform: translateX(-50%);
+    color: #a24ad0;
+    font-size: 1.1rem;
+    opacity: 0.8;
+    letter-spacing: 4px;
+  }
+  .letter-paper h2 {
+    text-align: center;
+    font-size: 1.5rem;
+    color: #d98aff;
+    margin-bottom: 18px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-shadow: 0 0 14px rgba(180, 80, 255, 0.7);
+  }
+  .letter-paper p {
+    font-size: 1.1rem;
+    line-height: 1.75;
+    color: #d4b4e8;
+    margin-bottom: 12px;
+    text-align: center;
+    font-weight: 500;
+  }
+  .letter-paper .big-heart {
+    font-size: 2.2rem;
+    text-align: center;
+    margin: 14px 0 6px;
+    color: #b84dff;
+    animation: heartbeat 1.3s ease-in-out infinite;
+    filter: drop-shadow(0 0 16px #a040e0);
+  }
+  .letter-paper .sign {
+    text-align: right;
+    font-style: italic;
+    color: #b98cd4;
+    margin-top: 18px;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+  .letter-paper .hint-message {
+    margin-top: 16px;
+    padding: 14px 18px;
+    border-radius: 10px;
+    font-size: 0.98rem;
+    line-height: 1.6;
+    font-style: italic;
+    font-weight: 500;
+  }
+  .hint-message.pure {
+    background: rgba(80, 255, 140, 0.1);
+    border: 1px solid rgba(120, 255, 160, 0.4);
+    color: #b5ffb5;
+  }
+  .hint-message.with-hints {
+    background: rgba(200, 120, 255, 0.12);
+    border: 1px solid rgba(200, 120, 255, 0.5);
+    color: #e9a8ff;
+  }
+  .hint-message.only-hints {
+    background: rgba(255, 150, 200, 0.12);
+    border: 1px solid rgba(255, 150, 200, 0.5);
+    color: #ffb3d9;
+  }
+  .letter-close {
+    position: absolute;
+    top: 8px; right: 12px;
+    background: none;
+    border: none;
+    font-size: 1.3rem;
+    color: #b98cd4;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: 0.2s;
+    padding: 4px 8px;
+    z-index: 2;
+  }
+  .letter-close:hover { opacity: 1; transform: scale(1.15) rotate(90deg); color: #e9a8ff; }
+
+  .reset-btn {
+    position: absolute;
+    top: 14px; right: 16px;
+    z-index: 60;
+    background: rgba(30, 12, 45, 0.85);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(160, 90, 220, 0.45);
+    color: #d0a8ec;
+    border-radius: 40px;
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+    font-family: inherit;
+  }
+  .reset-btn:hover {
+    background: rgba(60, 22, 90, 0.95);
+    box-shadow: 0 4px 22px rgba(140, 60, 210, 0.45);
+    color: #f0d4ff;
+  }
+
+  @media (max-width: 600px) {
+    .envelope { width: 108px; height: 76px; }
+    .env-seal { width: 28px; height: 28px; font-size: 13px; }
+    .note { font-size: 0.92rem; padding: 9px 12px; max-width: 200px; }
+    .progress { font-size: 0.78rem; padding: 6px 16px; }
+    .task-paper { padding: 32px 22px 26px; }
+    .task-paper h2 { font-size: 1.25rem; }
+    .task-paper p { font-size: 1rem; }
+    .bottom-controls { bottom: 48px; gap: 8px; }
+    .action-btn { padding: 11px 18px; font-size: 0.88rem; }
+    .board { bottom: 120px; padding: 12px 14px; }
+    .slot { min-width: 70px; min-height: 44px; padding: 8px 10px; max-width: 140px; }
+    .slot .slot-text { font-size: 0.82rem; }
+    .board-title { font-size: 0.75rem; margin-bottom: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-deco" style="top: 8%; left: 6%; color: #a24ad0; font-size: 28px; animation-delay: 0s;">✧</div>
+<div class="bg-deco" style="top: 20%; left: 88%; color: #7a3fa8; font-size: 36px; animation-delay: 2s;">♥</div>
+<div class="bg-deco" style="top: 60%; left: 10%; color: #8e4ec4; font-size: 24px; animation-delay: 4s;">✦</div>
+<div class="bg-deco" style="top: 78%; left: 80%; color: #6b3a90; font-size: 32px; animation-delay: 1.5s;">♡</div>
+<div class="bg-deco" style="top: 44%; left: 48%; color: #a24ad0; font-size: 20px; animation-delay: 3s;">✧</div>
+<div class="bg-deco" style="top: 12%; left: 56%; color: #7a3fa8; font-size: 22px; animation-delay: 5s;">♥</div>
+<div class="bg-deco" style="top: 88%; left: 30%; color: #8e4ec4; font-size: 18px; animation-delay: 2.5s;">✦</div>
+
+<div class="header">
+  <h1><span class="cat-ears">🐱</span> Послание от меня! <span class="cat-ears">💜</span></h1>
+  <p>Открой все конверты и собери послание по слотам ✨</p>
+</div>
+
+<button class="reset-btn" id="resetBtn">↻ Заново</button>
+
+<div class="progress" id="progress">
+  <span>Открыто: <span id="openedCount">0</span> / <span id="totalCount">0</span></span>
+  <span class="hearts" id="heartsRow"></span>
+</div>
+
+<div id="world" style="position: absolute; inset: 0; overflow: hidden;"></div>
+
+<!-- Поле сбора со слотами -->
+<div class="board" id="board">
+  <div class="board-title">Перетащи каждую записку в свой слот ↓</div>
+  <div class="slots-row" id="slotsRow"></div>
+</div>
+
+<!-- Кнопки внизу -->
+<div class="bottom-controls" id="bottomControls">
+  <button class="action-btn hint" id="hintBtn">✨ Подсказка</button>
+</div>
+
+<!-- Тост -->
+<div class="toast" id="toast"></div>
+
+<!-- Письмо-задание -->
+<div class="task-panel" id="taskPanel">
+  <div class="task-paper">
+    <div class="task-emoji">💌</div>
+    <h2>Я тебя очень люблю</h2>
+    <p>Ты открыл все конверты, и теперь тебя ждёт главное...</p>
+    <div class="task-instruction">
+      <b>Собери моё тайное послание</b><br>
+      Перетащи каждую записку в свой слот внизу экрана.<br>
+      <span style="color:#b98cd4; font-size:0.9rem;">Если трудно — жми «✨ Подсказка», и записка сама встанет на место.</span>
+    </div>
+    <button class="task-btn" id="taskStartBtn">Я готов 💜</button>
+  </div>
+</div>
+
+<!-- Финальное письмо -->
+<div class="final-letter" id="finalLetter">
+  <div class="letter-paper">
+    <button class="letter-close" id="closeLetter" title="Закрыть">✕</button>
+    <h2>Ты собрал моё сердце 💜</h2>
+    <p>Ты разгадал моё тайное послание~</p>
+    <p>Каждое слово было спрятано,<br>чтобы ты почувствовал, как сильно я тебя люблю.</p>
+    <div class="big-heart">💗</div>
+    <p style="font-size:1.15rem; color:#d98aff;">«Ты — мой самый любимый человек,<br>моя нежность, мой дом и моё счастье.»</p>
+    <p class="sign">— твой фембойчик 🐱💜</p>
+    <div class="hint-message" id="hintMessage"></div>
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // ============================================================
+  //  ТВОЁ ПОСЛАНИЕ — порядок строк = порядок слотов
+  // ============================================================
+  // ВАЖНО: индекс в массиве — это правильный номер слота.
+  // Конверты перемешиваются, но каждая записка помнит свой
+  // правильный индекс (correctIndex) и встаёт ТОЛЬКО в свой слот.
+  const NOTES = [
+    'Любимый мой,',
+    'я тебя',
+    'очень сильно',
+    ' люблю.',
+    'Давай',
+    ' на следеющей',
+    'встрече(свидании),',
+    'Будем',
+    'мило няшиться,',
+    'и говорить как',
+    'сильно любим',
+    ' друг друга!'
+  ];
+
+  const rand = (min, max) => Math.random() * (max - min) + min;
+
+  const world = document.getElementById('world');
+  const openedCountEl = document.getElementById('openedCount');
+  const totalCountEl = document.getElementById('totalCount');
+  const heartsRowEl = document.getElementById('heartsRow');
+  const taskPanel = document.getElementById('taskPanel');
+  const taskStartBtn = document.getElementById('taskStartBtn');
+  const bottomControls = document.getElementById('bottomControls');
+  const hintBtn = document.getElementById('hintBtn');
+  const board = document.getElementById('board');
+  const slotsRow = document.getElementById('slotsRow');
+  const finalLetter = document.getElementById('finalLetter');
+  const closeLetterBtn = document.getElementById('closeLetter');
+  const resetBtn = document.getElementById('resetBtn');
+  const toast = document.getElementById('toast');
+  const hintMessage = document.getElementById('hintMessage');
+
+  let envelopes = [];
+  let totalEnvelopes = NOTES.length;
+  let openedEnvelopes = 0;
+  let zCounter = 100;
+  let notesData = [];
+  let slotsData = [];
+  let taskShown = false;
+  let gameWon = false;
+  let hintCount = 0;
+  let hintPlacedCount = 0;
+  let isAnimating = false;
+
+  // ============================================================
+  //  ТОСТ
+  // ============================================================
+  let toastTimer = null;
+  function showToast(message, type) {
+    clearTimeout(toastTimer);
+    toast.textContent = message;
+    toast.className = 'toast show' + (type ? ' ' + type : '');
+    toastTimer = setTimeout(() => {
+      toast.classList.remove('show');
+    }, 2800);
+  }
+
+  // ============================================================
+  //  ЧАСТИЦЫ
+  // ============================================================
+  function spawnSparkles(x, y, count) {
+    const symbols = ['✨', '✧', '✦', '♡', '💜', '✩'];
+    for (let i = 0; i < count; i++) {
+      const s = document.createElement('div');
+      s.className = 'sparkle';
+      s.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+      s.style.left = x + 'px';
+      s.style.top = y + 'px';
+      const angle = rand(0, Math.PI * 2);
+      const dist = rand(40, 140);
+      s.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+      s.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+      s.style.fontSize = rand(0.9, 1.6) + 'rem';
+      s.style.animationDelay = rand(0, 0.15) + 's';
+      document.body.appendChild(s);
+      setTimeout(() => s.remove(), 1200);
+    }
+  }
+
+  // ============================================================
+  //  ПЕРЕТАСКИВАНИЕ
+  // ============================================================
+  function makeDraggable(el, onDragStart, onDragEnd) {
+    let startX = 0, startY = 0, startLeft = 0, startTop = 0;
+    let dragging = false, pointerId = null;
+
+    el.addEventListener('pointerdown', (e) => {
+      if (e.button !== undefined && e.button !== 0) return;
+      if (el.classList.contains('locked') || isAnimating) return;
+
+      dragging = true;
+      pointerId = e.pointerId;
+      el.setPointerCapture(pointerId);
+      el.classList.add('dragging');
+      el.style.zIndex = ++zCounter;
+
+      const rect = el.getBoundingClientRect();
+      startX = e.clientX;
+      startY = e.clientY;
+      startLeft = rect.left;
+      startTop = rect.top;
+      el.style.left = rect.left + 'px';
+      el.style.top = rect.top + 'px';
+
+      if (onDragStart) onDragStart(el);
+      e.preventDefault();
+    });
+
+    el.addEventListener('pointermove', (e) => {
+      if (!dragging || e.pointerId !== pointerId) return;
+      let newLeft = startLeft + (e.clientX - startX);
+      let newTop = startTop + (e.clientY - startY);
+      const w = el.offsetWidth, h = el.offsetHeight;
+      newLeft = Math.max(4, Math.min(newLeft, window.innerWidth - w - 4));
+      newTop = Math.max(70, Math.min(newTop, window.innerHeight - h - 4));
+      el.style.left = newLeft + 'px';
+      el.style.top = newTop + 'px';
+
+      highlightSlotUnderCursor(e.clientX, e.clientY, el);
+    });
+
+    function endDrag(e) {
+      if (!dragging || (e && e.pointerId !== pointerId)) return;
+      dragging = false;
+      el.classList.remove('dragging');
+      if (pointerId !== null && el.hasPointerCapture(pointerId)) {
+        el.releasePointerCapture(pointerId);
+      }
+      pointerId = null;
+      clearSlotHighlights();
+
+      if (e) {
+        tryDropInSlot(el, e.clientX, e.clientY);
+      }
+
+      if (onDragEnd) onDragEnd(el);
+    }
+
+    el.addEventListener('pointerup', endDrag);
+    el.addEventListener('pointercancel', endDrag);
+    el.addEventListener('lostpointercapture', (e) => {
+      if (dragging) endDrag(e);
+    });
+  }
+
+  // ============================================================
+  //  СЛОТЫ
+  // ============================================================
+  function buildSlots() {
+    slotsRow.innerHTML = '';
+    slotsData = [];
+    for (let i = 0; i < totalEnvelopes; i++) {
+      const slot = document.createElement('div');
+      slot.className = 'slot';
+      slot.dataset.index = i;
+      // Показываем номер слота, но текст слота пуст
+      slot.innerHTML = `<span class="slot-num">${i + 1}</span><span class="slot-text"></span>`;
+      slotsRow.appendChild(slot);
+      slotsData.push({ el: slot, index: i, filled: false, note: null });
+    }
+  }
+
+  function highlightSlotUnderCursor(cx, cy, draggedEl) {
+    clearSlotHighlights();
+    if (!draggedEl) return;
+    const r = draggedEl.getBoundingClientRect();
+    const centerX = r.left + r.width / 2;
+    const centerY = r.top + r.height / 2;
+    const slot = getSlotUnderPoint(centerX, centerY);
+    if (slot && !slot.filled) {
+      slot.el.classList.add('hover');
+    }
+  }
+
+  function clearSlotHighlights() {
+    slotsData.forEach(s => s.el.classList.remove('hover'));
+  }
+
+  function getSlotUnderPoint(x, y) {
+    for (const s of slotsData) {
+      const r = s.el.getBoundingClientRect();
+      if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) {
+        return s;
+      }
+    }
+    return null;
+  }
+
+  function tryDropInSlot(noteEl, cx, cy) {
+    if (!noteEl || noteEl.classList.contains('snapped')) return;
+    const noteData = notesData.find(n => n.el === noteEl);
+    if (!noteData) return;
+
+    const r = noteEl.getBoundingClientRect();
+    const centerX = r.left + r.width / 2;
+    const centerY = r.top + r.height / 2;
+    const slot = getSlotUnderPoint(centerX, centerY);
+
+    if (slot && !slot.filled) {
+      // Проверяем: слот, в который бросают, совпадает с correctIndex записки?
+      if (slot.index === noteData.correctIndex) {
+        placeNoteInSlot(noteData, slot, false);
+      } else {
+        // Если бросили в неправильный слот — отказ
+        showToast('Это не тот слот~ Попробуй другой 💜', 'error');
+        noteEl.style.transition = 'transform 0.2s';
+        noteEl.style.transform = 'translateX(-6px) rotate(-2deg)';
+        setTimeout(() => {
+          noteEl.style.transform = 'translateX(6px) rotate(2deg)';
+          setTimeout(() => {
+            noteEl.style.transform = '';
+            noteEl.style.transition = '';
+          }, 150);
+        }, 150);
+      }
+    }
+  }
+
+  function placeNoteInSlot(noteData, slot, byHint) {
+    if (slot.filled || noteData.placed) return;
+
+    // ВАЖНАЯ ПРОВЕРКА: ставим только если correctIndex совпадает с index слота.
+    // Это гарантирует, что порядок слов всегда будет правильным.
+    if (noteData.correctIndex !== slot.index) {
+      console.warn('Попытка поставить записку не в свой слот!');
+      return;
+    }
+
+    noteData.placed = true;
+    slot.filled = true;
+    slot.note = noteData;
+
+    const slotRect = slot.el.getBoundingClientRect();
+    const noteEl = noteData.el;
+
+    const paddingX = 10;
+    const paddingY = 8;
+    const targetW = Math.max(60, slotRect.width - paddingX * 2);
+    const targetH = Math.max(30, slotRect.height - paddingY * 2);
+
+    noteEl.style.width = targetW + 'px';
+    noteEl.style.height = 'auto';
+    noteEl.style.maxHeight = targetH + 'px';
+    noteEl.style.minWidth = '0';
+
+    noteEl.style.transition = 'left 0.6s cubic-bezier(0.22, 1, 0.36, 1), top 0.6s cubic-bezier(0.22, 1, 0.36, 1), transform 0.4s ease, box-shadow 0.4s ease, width 0.3s ease, font-size 0.3s ease';
+    noteEl.style.left = (slotRect.left + 2) + 'px';
+    noteEl.style.top = (slotRect.top + 2) + 'px';
+    noteEl.style.transform = 'rotate(0deg)';
+    noteEl.style.zIndex = 150;
+    noteEl.classList.add('snapped', 'locked');
+
+    slot.el.classList.add('filled');
+    const slotText = slot.el.querySelector('.slot-text');
+    if (slotText) slotText.textContent = noteData.text;
+
+    noteEl.style.fontSize = '0.95rem';
+    noteEl.style.lineHeight = '1.3';
+    noteEl.style.padding = '6px 8px';
+    noteEl.style.overflow = 'hidden';
+
+    if (byHint) {
+      slot.el.classList.add('hint-fill');
+      setTimeout(() => slot.el.classList.remove('hint-fill'), 1100);
+    }
+
+    setTimeout(() => {
+      const sr = slot.el.getBoundingClientRect();
+      spawnSparkles(sr.left + sr.width / 2, sr.top + sr.height / 2, byHint ? 14 : 6);
+    }, 300);
+
+    checkWin();
+  }
+
+  function checkWin() {
+    if (gameWon) return;
+    const allPlaced = slotsData.every(s => s.filled);
+    if (allPlaced) {
+      gameWon = true;
+      showToast('💜 Все записки на местах!', 'success');
+      bottomControls.classList.remove('show');
+      setTimeout(() => {
+        showFinalLetter();
+      }, 900);
+    }
+  }
+
+  // ============================================================
+  //  КОНВЕРТ
+  // ============================================================
+  function createEnvelope(index, noteText) {
+    const env = document.createElement('div');
+    env.className = 'envelope';
+    env.dataset.index = index;
+
+    const cols = Math.ceil(Math.sqrt(totalEnvelopes));
+    const rows = Math.ceil(totalEnvelopes / cols);
+    const cellW = window.innerWidth / (cols + 1);
+    const cellH = (window.innerHeight - 200) / (rows + 1);
+    const col = index % cols;
+    const row = Math.floor(index / cols);
+    const offsetX = (window.innerWidth - cellW * cols) / 2;
+    const offsetY = 90;
+
+    let x = offsetX + col * cellW + rand(-20, 20) + cellW / 2 - 66;
+    let y = offsetY + row * cellH + rand(-15, 15) + cellH / 2 - 46;
+    x = Math.max(10, Math.min(x, window.innerWidth - 142));
+    y = Math.max(80, Math.min(y, window.innerHeight - 200));
+    env.style.left = x + 'px';
+    env.style.top = y + 'px';
+
+    env.innerHTML = `
+      <div class="env-inner"></div>
+      <div class="env-side-left"></div>
+      <div class="env-side-right"></div>
+      <div class="env-bottom"></div>
+      <div class="env-flap"></div>
+      <div class="env-crease-diag"></div>
+      <div class="env-crease"></div>
+      <div class="env-seal">💜</div>
+      <div class="env-label">письмо ${index + 1}</div>
+    `;
+
+    makeDraggable(env);
+
+    env.addEventListener('click', (e) => {
+      if (env.classList.contains('dragging')) return;
+      if (env.dataset.opened === '1') return;
+      openEnvelope(env, noteText);
+      e.stopPropagation();
+    });
+
+    world.appendChild(env);
+    envelopes.push({ el: env, noteText, opened: false });
+  }
+
+  function openEnvelope(envEl, noteText) {
+    const idx = parseInt(envEl.dataset.index, 10);
+    const data = envelopes[idx];
+    if (!data || data.opened) return;
+
+    data.opened = true;
+    envEl.dataset.opened = '1';
+    envEl.classList.add('opened', 'locked');
+    envEl.style.cursor = 'default';
+
+    openedEnvelopes++;
+    updateProgress();
+    // При открытии конверта передаём text, а также его ИСТИННЫЙ correctIndex
+    // correctIndex будет взят из исходного массива NOTES.
+    // Так как конверты создаются из перемешанного массива, нам нужно
+    // найти true-индекс текста в NOTES.
+    const trueIndex = NOTES.indexOf(noteText);
+    createNote(envEl, noteText, trueIndex);
+
+    if (openedEnvelopes >= totalEnvelopes && !taskShown) {
+      taskShown = true;
+      setTimeout(() => {
+        taskPanel.classList.add('show');
+      }, 900);
+    }
+  }
+
+  // ============================================================
+  //  ЗАПИСКА
+  // ============================================================
+  function createNote(envEl, text, correctIndex) {
+    const note = document.createElement('div');
+    note.className = 'note';
+    note.textContent = text;
+    // Сохраняем ИСТИННЫЙ индекс слова в NOTES
+    note.dataset.correctIndex = correctIndex;
+
+    const envRect = envEl.getBoundingClientRect();
+    const nw = Math.min(240, Math.max(80, text.length * 14 + 40));
+    const nh = 46;
+
+    let nx = envRect.left + envRect.width / 2 - nw / 2 + rand(-50, 50);
+    let ny = envRect.top - nh - rand(10, 60);
+    nx = Math.max(8, Math.min(nx, window.innerWidth - nw - 8));
+    ny = Math.max(70, Math.min(ny, window.innerHeight - nh - 140));
+
+    note.style.left = nx + 'px';
+    note.style.top = ny + 'px';
+
+    note.classList.add('drop');
+    setTimeout(() => note.classList.remove('drop'), 700);
+
+    makeDraggable(note);
+
+    world.appendChild(note);
+    // В notesData push-им объект с correctIndex (истинный индекс)
+    notesData.push({ el: note, text, correctIndex, placed: false });
+  }
+
+  // ============================================================
+  //  ПРОГРЕСС
+  // ============================================================
+  function updateProgress() {
+    openedCountEl.textContent = openedEnvelopes;
+    totalCountEl.textContent = totalEnvelopes;
+    let html = '';
+    for (let i = 0; i < totalEnvelopes; i++) {
+      const filled = i < openedEnvelopes;
+      html += `<span class="${filled ? 'filled' : 'empty'}">${filled ? '💜' : '♡'}</span>`;
+    }
+    heartsRowEl.innerHTML = html;
+  }
+
+  // ============================================================
+  //  ПОДСКАЗКА
+  // ============================================================
+  function useHint() {
+    if (gameWon || isAnimating) return;
+    if (notesData.length === 0) {
+      showToast('Сначала открой конверты ✨', 'error');
+      return;
+    }
+
+    let targetNote = null;
+    let targetSlot = null;
+
+    // Ищем первый незаполненный слот и записку с правильным correctIndex
+    for (const slot of slotsData) {
+      if (slot.filled) continue;
+      const n = notesData.find(nd => nd.correctIndex === slot.index && !nd.placed);
+      if (n) {
+        targetNote = n;
+        targetSlot = slot;
+        break;
+      }
+    }
+
+    if (!targetNote || !targetSlot) {
+      showToast('Всё уже на своих местах! 💜', 'magic');
+      return;
+    }
+
+    isAnimating = true;
+    hintBtn.disabled = true;
+    hintCount++;
+    hintPlacedCount++;
+
+    const noteRect = targetNote.el.getBoundingClientRect();
+    spawnSparkles(noteRect.left + noteRect.width / 2, noteRect.top + noteRect.height / 2, 12);
+
+    targetNote.el.classList.add('magic-move');
+    targetNote.el.style.zIndex = 6000;
+
+    placeNoteInSlot(targetNote, targetSlot, true);
+
+    setTimeout(() => {
+      targetNote.el.classList.remove('magic-move');
+      isAnimating = false;
+      hintBtn.disabled = false;
+
+      if (!gameWon) {
+        const filledCount = slotsData.filter(s => s.filled).length;
+        showToast(`✨ Записка встала на место! (${filledCount}/${totalEnvelopes}, подсказок: ${hintCount})`, 'magic');
+      }
+    }, 800);
+  }
+
+  // ============================================================
+  //  ФИНАЛ
+  // ============================================================
+  function showFinalLetter() {
+    let msgClass, msgText;
+
+    if (hintPlacedCount === 0) {
+      msgClass = 'pure';
+      msgText = '🌟 Ты молодец, что смог решить эту головоломку сам, без единой подсказки!';
+    } else if (hintPlacedCount >= totalEnvelopes) {
+      msgClass = 'only-hints';
+      msgText = '💕 Жаль, конечно, что ты не смог это решить сам... но так как я тебя очень люблю — ничего страшного!';
+    } else {
+      msgClass = 'with-hints';
+      msgText = '💜 Ты молодец, что смог решить эту головоломку, хоть и с подсказками!';
+    }
+
+    hintMessage.textContent = msgText;
+    hintMessage.className = 'hint-message ' + msgClass;
+
+    finalLetter.classList.add('show');
+  }
+
+  closeLetterBtn.addEventListener('click', () => finalLetter.classList.remove('show'));
+  finalLetter.addEventListener('click', (e) => {
+    if (e.target === finalLetter) finalLetter.classList.remove('show');
+  });
+
+  // ============================================================
+  //  ЗАДАНИЕ
+  // ============================================================
+  taskStartBtn.addEventListener('click', () => {
+    taskPanel.classList.remove('show');
+    board.classList.add('show');
+    bottomControls.classList.add('show');
+    showToast('Перетаскивай записки в слоты или жми «✨ Подсказка» 💜');
+  });
+
+  hintBtn.addEventListener('click', useHint);
+
+  // ============================================================
+  //  СБРОС
+  // ============================================================
+  function initGame() {
+    world.innerHTML = '';
+    envelopes = [];
+    notesData = [];
+    openedEnvelopes = 0;
+    totalEnvelopes = NOTES.length;
+    zCounter = 100;
+    taskShown = false;
+    gameWon = false;
+    hintCount = 0;
+    hintPlacedCount = 0;
+    isAnimating = false;
+
+    taskPanel.classList.remove('show');
+    board.classList.remove('show');
+    bottomControls.classList.remove('show');
+    finalLetter.classList.remove('show');
+    hintMessage.textContent = '';
+    hintMessage.className = 'hint-message';
+    hintBtn.disabled = false;
+
+    buildSlots();
+
+    // Перемешиваем тексты для конвертов, но каждая записка
+    // получает правильный индекс из NOTES (через indexOf).
+    const shuffled = [...NOTES].sort(() => Math.random() - 0.5);
+    shuffled.forEach((text, i) => createEnvelope(i, text));
+
+    updateProgress();
+  }
+
+  resetBtn.addEventListener('click', initGame);
+  window.addEventListener('load', initGame);
+
+  let resizeTimeout;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+      document.querySelectorAll('.envelope, .note').forEach(el => {
+        if (el.classList.contains('snapped')) return;
+        const r = el.getBoundingClientRect();
+        if (r.left < 0 || r.top < 0 || r.right > window.innerWidth || r.bottom > window.innerHeight) {
+          const newLeft = Math.max(4, Math.min(parseFloat(el.style.left) || r.left, window.innerWidth - el.offsetWidth - 4));
+          const newTop = Math.max(70, Math.min(parseFloat(el.style.top) || r.top, window.innerHeight - el.offsetHeight - 4));
+          el.style.left = newLeft + 'px';
+          el.style.top = newTop + 'px';
+        }
+      });
+    }, 200);
+  });
+})();
+</script>
+</body>
+</html>
